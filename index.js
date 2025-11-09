@@ -32,6 +32,11 @@ async function run() {
         const result = await jobsCollection.insertOne(newJob);
         res.send(result);
     });
+    app.get('/all-jobs',async(req,res)=>{
+      const cursor = jobsCollection.find()
+      const result = await cursor.toArray()
+      res.send(result)
+    })
     app.get('/latest-jobs',async(req,res)=>{
       const cursor = jobsCollection.find().skip(6).limit(6);
       const result = await cursor.toArray();
