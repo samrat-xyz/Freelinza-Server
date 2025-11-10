@@ -2,6 +2,13 @@ const express = require("express");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
+const admin = require("firebase-admin");
+const serviceAccount = require("./freelinza-firebase-adminsdk.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.xq0m0kp.mongodb.net/?appName=Cluster0`;
 const client = new MongoClient(uri, {
   serverApi: {
