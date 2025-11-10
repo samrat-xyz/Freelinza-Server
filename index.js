@@ -27,7 +27,7 @@ async function run() {
     await client.connect();
     const database = client.db("FreelinzaDB");
     const jobsCollection = database.collection("Jobs");
-
+    const acceptedTasksCollection = database.collection("AcceptedTasks");
     app.post("/jobs", async (req, res) => {
       const newJob = req.body;
       newJob.createdAt = new Date();
@@ -40,21 +40,46 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
-    app.get("/all-jobs/:id",async(req,res)=>{
+    app.get("/all-jobs/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const job = await jobsCollection.findOne(query);
       res.send(job);
-
-    })
+    });
     app.get("/latest-jobs", async (req, res) => {
       const cursor = jobsCollection
         .find()
-        .sort({ createdAt: -1 }) 
+        .sort({ createdAt: -1 })
         .skip(6)
         .limit(6);
-
       const result = await cursor.toArray();
+      res.send(result);
+    });
+    app.post("/my-accepted-tasks", async (req, res) => {
+      const acceptedJob = req.body;
+      const existing = await acceptedTasksCollection.findOne({
+        jobId: acceptedJob.jobId,
+        acceptedBy: acceptedJob.acceptedBy,
+      });
+
+      if (existing) {
+        return res.send({ message: "Already accepted this job" });
+      }
+      const result = await acceptedTasksCollection.insertOne(acceptedJob);
+      res.send(result);
+    });
+    app.get("/my-accepted-tasks", async (req, res) => {
+      const email = req.query.email;
+      const query = { acceptedBy: email };
+      const result = await acceptedTasksCollection.find(query).toArray();
+
+      res.send(result);
+    });
+    app.delete("/my-accepted-tasks/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await acceptedTasksCollection.deleteOne({
+        _id: new ObjectId(id),
+      });
       res.send(result);
     });
 
