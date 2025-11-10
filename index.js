@@ -1,9 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-require("dotenv").config()
-const uri =
-  `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.xq0m0kp.mongodb.net/?appName=Cluster0`;
+require("dotenv").config();
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.xq0m0kp.mongodb.net/?appName=Cluster0`;
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -11,7 +10,6 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
-
 const app = express();
 const port = process.env.PORT || 3030;
 
@@ -34,7 +32,38 @@ async function run() {
       const result = await jobsCollection.insertOne(newJob);
       res.send(result);
     });
+    app.get("/jobs", async (req, res) => {
+      const email = req.query.email;
+      let query = {};
 
+      if (email) {
+        query = { userEmail: email };
+      }
+
+      const result = await jobsCollection.find(query).toArray();
+      res.send(result);
+    });
+    app.delete("/jobs/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await jobsCollection.deleteOne(query);
+      res.send(result);
+    });
+    app.put("/jobs/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedJob = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          title: updatedJob.title,
+          category: updatedJob.category,
+          summary: updatedJob.summary,
+          coverImage: updatedJob.coverImage,
+        },
+      };
+      const result = await jobsCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
     app.get("/all-jobs", async (req, res) => {
       const cursor = jobsCollection.find();
       const result = await cursor.toArray();
