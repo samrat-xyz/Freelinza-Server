@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const uri =
   "mongodb+srv://FreelinzaDB:Cxr5YtPXkkhLByMk@cluster0.xq0m0kp.mongodb.net/?appName=Cluster0";
@@ -40,6 +40,13 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
+    app.get("/all-jobs/:id",async(req,res)=>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const job = await jobsCollection.findOne(query);
+      res.send(job);
+
+    })
     app.get("/latest-jobs", async (req, res) => {
       const cursor = jobsCollection
         .find()
